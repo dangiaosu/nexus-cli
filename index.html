@@ -124,6 +124,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.4s ease;
+            white-space: pre-line;
         }
 
         .result.show {
@@ -175,6 +176,27 @@
             color: #555;
         }
 
+        .proxy-selector {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .proxy-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .proxy-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 30px 20px;
@@ -193,6 +215,16 @@
         <h1>Camp Network Ban Checker</h1>
         <p class="subtitle">Kiểm tra trạng thái ban của ví trên Camp Network</p>
         
+        <div class="proxy-selector">
+            <label for="proxySelect">Chọn Proxy Server:</label>
+            <select id="proxySelect">
+                <option value="https://api.allorigins.win/raw?url=">All Origins (Khuyến nghị)</option>
+                <option value="https://cors-anywhere.herokuapp.com/">CORS Anywhere</option>
+                <option value="https://thingproxy.freeboard.io/fetch/">Thing Proxy</option>
+                <option value="https://corsproxy.io/?">CORS Proxy</option>
+            </select>
+        </div>
+        
         <div class="input-group">
             <div class="input-wrapper">
                 <input 
@@ -200,6 +232,7 @@
                     id="walletInput" 
                     placeholder="Nhập địa chỉ ví (0x...)"
                     maxlength="42"
+                    value="0x2d207eDB3e979b6360f413a7910779dF703A7d28"
                 >
             </div>
             <button class="check-btn" onclick="checkWallet()">
@@ -215,7 +248,7 @@
         <div class="result" id="result"></div>
 
         <div class="info">
-            <strong>Lưu ý:</strong> Tool này sử dụng IP của bạn để bypass kiểm tra. Kết quả hiển thị ngay lập tức dựa trên API chính thức của Camp Network.
+            <strong>Lưu ý:</strong> Tool sử dụng proxy server để bypass CORS policy. Nếu một proxy không hoạt động, hãy thử proxy khác trong dropdown.
         </div>
     </div>
 
@@ -224,6 +257,7 @@
         const resultDiv = document.getElementById('result');
         const loadingDiv = document.getElementById('loading');
         const checkBtn = document.querySelector('.check-btn');
+        const proxySelect = document.getElementById('proxySelect');
 
         // Auto format wallet address
         walletInput.addEventListener('input', function(e) {
@@ -244,6 +278,7 @@
 
         async function checkWallet() {
             const walletAddress = walletInput.value.trim();
+            const proxyUrl = proxySelect.value;
             
             // Validate wallet address
             if (!walletAddress) {
@@ -261,17 +296,19 @@
             hideResult();
 
             try {
-                // Use fetch with client IP (browser will automatically use client IP)
-                const response = await fetch(`https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`, {
+                const apiUrl = `https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`;
+                const requestUrl = proxyUrl + encodeURIComponent(apiUrl);
+
+                const response = await fetch(requestUrl, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
-                        'User-Agent': navigator.userAgent
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error('Không thể kết nối đến Camp Network API');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
@@ -285,12 +322,19 @@
                         const isBlocked = userMetadata.isBlocked;
                         const twitterUser = userMetadata.twitterUser;
                         const displayName = userMetadata.displayName;
+                        const blockReason = userMetadata.blockStatusReason;
                         
                         if (isBlocked) {
-                            const reason = userMetadata.blockStatusReason || 'Không rõ lý do';
-                            showResult(`❌ Ví đã bị BAN!\nLý do: ${reason}`, 'banned');
+                            let message = `❌ VÍ ĐÃ BỊ BAN!`;
+                            if (blockReason) {
+                                message += `\nLý do: ${blockReason}`;
+                            }
+                            if (twitterUser) {
+                                message += `\nTwitter: @${twitterUser}`;
+                            }
+                            showResult(message, 'banned');
                         } else {
-                            let message = `✅ Ví an toàn - Chưa bị ban!`;
+                            let message = `✅ VÍ AN TOÀN - CHƯA BỊ BAN!`;
                             if (twitterUser) {
                                 message += `\nTwitter: @${twitterUser}`;
                             }
@@ -300,15 +344,21 @@
                             showResult(message, 'safe');
                         }
                     } else {
-                        showResult('✅ Ví an toàn - Chưa bị ban!', 'safe');
+                        showResult('✅ VÍ AN TOÀN - CHƯA BỊ BAN!\n(Không có metadata)', 'safe');
                     }
                 } else {
-                    showResult('⚠️ Không tìm thấy thông tin ví này trên Camp Network', 'error');
+                    showResult('⚠️ KHÔNG TÌM THẤY THÔNG TIN VÍ\nVí này có thể chưa tương tác với Camp Network', 'error');
                 }
 
             } catch (error) {
                 console.error('Error:', error);
-                showResult('❌ Lỗi kết nối! Vui lòng thử lại sau.', 'error');
+                if (error.message.includes('403')) {
+                    showResult('❌ LỖI 403 - PROXY BỊ BLOCK!\nHãy thử proxy server khác trong dropdown', 'error');
+                } else if (error.message.includes('404')) {
+                    showResult('⚠️ KHÔNG TÌM THẤY VÍ\nVí này không tồn tại trên Camp Network', 'error');
+                } else {
+                    showResult(`❌ LỖI KẾT NỐI!\n${error.message}\nHãy thử proxy khác hoặc thử lại sau`, 'error');
+                }
             } finally {
                 showLoading(false);
             }
