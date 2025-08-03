@@ -1,13 +1,10 @@
-// api/proxy.js - Đặt file này trong folder api/
+// api/proxy.js
 export default async function handler(req, res) {
-  // Enable CORS
+  // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Accept, Content-Type');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -21,37 +18,55 @@ export default async function handler(req, res) {
   const { walletAddress } = req.query;
 
   if (!walletAddress) {
-    return res.status(400).json({ error: 'walletAddress is required' });
+    return res.status(400).json({ error: 'walletAddress parameter is required' });
   }
 
+  console.log(`Checking wallet: ${walletAddress}`);
+
   try {
-    const response = await fetch(
-      `https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-        }
+    const targetUrl = `https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`;
+    
+    const response = await fetch(targetUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site'
       }
-    );
+    });
+
+    console.log(`Response status: ${response.status}`);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} - ${errorText}`);
+      
+      return res.status(response.status).json({ 
+        error: `Camp Network API returned ${response.status}`,
+        details: errorText 
+      });
     }
 
     const data = await response.json();
-    res.status(200).json(data);
+    console.log('Success! Data received');
+    
+    return res.status(200).json(data);
 
   } catch (error) {
     console.error('Proxy error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch data', 
-      details: error.message 
+    
+    return res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
