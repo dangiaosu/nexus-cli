@@ -1,6 +1,7 @@
 {
-  "private": true,
-  "dependencies": {
-    "@vercel/edge": "^0.1.2"
+  "name": "camp-network-checker",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'No build needed'"
   }
 }
