@@ -1,96 +1,349 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script defer src="/_vercel/insights/script.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
-    />
-    <title>Vercel HTML Starter</title>
-    <meta
-      name="description"
-      content="High-performance HTML based website template."
-    />
-  </head>
-  <body>
-    <h1>Vercel HTML Starter</h1>
-    <p>
-      This template is a simple, but powerful single
-      <code>index.html</code> file deployed to
-      <a href="https://vercel.com">Vercel</a>. When your site is deployed, all
-      static assets (like HTML, JavaScript, CSS, images, and more) are deployed
-      globally to every
-      <a href="https://vercel.com/docs/concepts/edge-network/overview"
-        >Vercel Edge Network</a
-      >
-      region.
-    </p>
-    <h2>Simple, privacy-friendly analytics</h2>
-    <p>
-      Want to understand your visitor traffic? Vercel Analytics gives you
-      first-party, privacy-friendly traffic analytics for your HTML site. This
-      template is already configured using the following script:
-    </p>
-    <pre><code>&lt;script defer src="/_vercel/insights/script.js"&gt;&lt;/script&gt;</code></pre>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/analytics">Vercel Analytics</a>.
-    </p>
-    <h2>Integrated with git</h2>
-    <p>
-      Deploying updates to your site is as simple as
-      <code>git push</code> thanks to Vercel's advanced
-      <a href="https://vercel.com/docs/concepts/git">Git Integration</a>.
-      Support for GitHub, GitLab, Bitbucket is zero-configuration, and with the
-      flexible Vercel CLI and API, you can integrate with any tool possible.
-    </p>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/git">Git Integration</a>.
-    </p>
-    <h2>Fast <code>gzip</code> compression</h2>
-    <p>
-      To help ensure the smallest possible file sizes for your static assets,
-      the Vercel Edge Network compresses files by default using
-      <code>gzip</code>. You can also optionally use
-      <code>brotli</code> compressesion if you prefer.
-    </p>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/edge-network/compression"
-        >compression</a
-      >.
-    </p>
-    <h2>Advanced routing configuration</h2>
-    <p>
-      Vercel gives you a variety of ways to configure the routing of your
-      website. For example, adding redirects, rewrites, or headers to your page.
-      While you can use <code>vercel.json</code> to define these through JSON,
-      you can also express your routing configuration as code using
-      <a href="https://vercel.com/docs/concepts/functions/edge-middleware"
-        >Vercel Edge Middleware</a
-      >.
-    </p>
-    <p>
-      Middleware runs before the
-      <a href="https://vercel.com/docs/concepts/edge-network/caching"
-        >Vercel Edge Network Cache</a
-      >, so you can configure routing exactly as your application needs. For
-      example, this template uses <code>middleware.js</code> defined in the root
-      of the repository to add additional security headers to the site:
-    </p>
-    <pre><code>referrer-policy: origin-when-cross-origin
-strict-transport-security: max-age=31536000; includeSubDomains; preload
-x-content-type-options: nosniff
-x-dns-prefetch-control: on
-x-frame-options: DENY</code></pre>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/functions/edge-middleware"
-        >Vercel Edge Middleware</a
-      >.
-    </p>
-  </body>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Network Ban Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #walletInput {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: white;
+        }
+
+        #walletInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #walletInput::placeholder {
+            color: #999;
+        }
+
+        .check-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result.safe {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .result.banned {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .result.error {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">CN</div>
+        <h1>Camp Network Ban Checker</h1>
+        <p class="subtitle">Kiểm tra trạng thái ban của ví trên Camp Network</p>
+        
+        <div class="input-group">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="walletInput" 
+                    placeholder="Nhập địa chỉ ví (0x...)"
+                    maxlength="42"
+                >
+            </div>
+            <button class="check-btn" onclick="checkWallet()">
+                Kiểm tra trạng thái
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Đang kiểm tra...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="info">
+            <strong>Lưu ý:</strong> Tool này sử dụng IP của bạn để bypass kiểm tra. Kết quả hiển thị ngay lập tức dựa trên API chính thức của Camp Network.
+        </div>
+    </div>
+
+    <script>
+        const walletInput = document.getElementById('walletInput');
+        const resultDiv = document.getElementById('result');
+        const loadingDiv = document.getElementById('loading');
+        const checkBtn = document.querySelector('.check-btn');
+
+        // Auto format wallet address
+        walletInput.addEventListener('input', function(e) {
+            let value = e.target.value;
+            // Remove any non-hex characters except 0x
+            if (!value.startsWith('0x') && value.length > 0) {
+                value = '0x' + value.replace(/[^a-fA-F0-9]/g, '');
+            }
+            e.target.value = value;
+        });
+
+        // Enter key support
+        walletInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkWallet();
+            }
+        });
+
+        async function checkWallet() {
+            const walletAddress = walletInput.value.trim();
+            
+            // Validate wallet address
+            if (!walletAddress) {
+                showResult('Vui lòng nhập địa chỉ ví!', 'error');
+                return;
+            }
+
+            if (!isValidWalletAddress(walletAddress)) {
+                showResult('Địa chỉ ví không hợp lệ! Địa chỉ phải có định dạng 0x...', 'error');
+                return;
+            }
+
+            // Show loading
+            showLoading(true);
+            hideResult();
+
+            try {
+                // Use fetch with client IP (browser will automatically use client IP)
+                const response = await fetch(`https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': navigator.userAgent
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể kết nối đến Camp Network API');
+                }
+
+                const data = await response.json();
+                
+                // Process result
+                if (data.data && data.data.length > 0) {
+                    const userData = data.data[0];
+                    const userMetadata = userData.userMetadata && userData.userMetadata[0];
+                    
+                    if (userMetadata) {
+                        const isBlocked = userMetadata.isBlocked;
+                        const twitterUser = userMetadata.twitterUser;
+                        const displayName = userMetadata.displayName;
+                        
+                        if (isBlocked) {
+                            const reason = userMetadata.blockStatusReason || 'Không rõ lý do';
+                            showResult(`❌ Ví đã bị BAN!\nLý do: ${reason}`, 'banned');
+                        } else {
+                            let message = `✅ Ví an toàn - Chưa bị ban!`;
+                            if (twitterUser) {
+                                message += `\nTwitter: @${twitterUser}`;
+                            }
+                            if (displayName) {
+                                message += `\nTên hiển thị: ${displayName}`;
+                            }
+                            showResult(message, 'safe');
+                        }
+                    } else {
+                        showResult('✅ Ví an toàn - Chưa bị ban!', 'safe');
+                    }
+                } else {
+                    showResult('⚠️ Không tìm thấy thông tin ví này trên Camp Network', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showResult('❌ Lỗi kết nối! Vui lòng thử lại sau.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function isValidWalletAddress(address) {
+            // Check if it's a valid Ethereum address format
+            return /^0x[a-fA-F0-9]{40}$/.test(address);
+        }
+
+        function showResult(message, type) {
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type} show`;
+        }
+
+        function hideResult() {
+            resultDiv.classList.remove('show');
+        }
+
+        function showLoading(show) {
+            if (show) {
+                loadingDiv.style.display = 'block';
+                checkBtn.disabled = true;
+                checkBtn.textContent = 'Đang kiểm tra...';
+            } else {
+                loadingDiv.style.display = 'none';
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Kiểm tra trạng thái';
+            }
+        }
+
+        // Auto focus on input
+        window.addEventListener('load', () => {
+            walletInput.focus();
+        });
+    </script>
+</body>
 </html>
