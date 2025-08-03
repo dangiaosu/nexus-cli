@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camp Network Ban Checker</title>
+    <title>Camp Network Ban Checker v2</title>
     <style>
         * {
             margin: 0;
@@ -59,6 +59,17 @@
             font-size: 16px;
         }
 
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
         .input-group {
             margin-bottom: 30px;
             position: relative;
@@ -104,7 +115,7 @@
             margin-top: 20px;
         }
 
-        .check-btn:hover {
+        .check-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
@@ -174,27 +185,28 @@
             border-radius: 8px;
             font-size: 14px;
             color: #555;
-        }
-
-        .proxy-selector {
-            margin-bottom: 20px;
             text-align: left;
         }
 
-        .proxy-selector label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
         }
 
-        .proxy-selector select {
-            width: 100%;
+        .stat-item {
+            background: rgba(255, 255, 255, 0.7);
             padding: 10px;
-            border: 2px solid #e1e5e9;
             border-radius: 8px;
-            background: white;
-            font-size: 14px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
         }
 
         @media (max-width: 480px) {
@@ -212,18 +224,8 @@
 <body>
     <div class="container">
         <div class="logo">CN</div>
-        <h1>Camp Network Ban Checker</h1>
-        <p class="subtitle">Kiểm tra trạng thái ban của ví trên Camp Network</p>
-        
-        <div class="proxy-selector">
-            <label for="proxySelect">Chọn Proxy Server:</label>
-            <select id="proxySelect">
-                <option value="https://api.allorigins.win/raw?url=">All Origins (Khuyến nghị)</option>
-                <option value="https://cors-anywhere.herokuapp.com/">CORS Anywhere</option>
-                <option value="https://thingproxy.freeboard.io/fetch/">Thing Proxy</option>
-                <option value="https://corsproxy.io/?">CORS Proxy</option>
-            </select>
-        </div>
+        <h1>Camp Network Ban Checker <span class="version-badge">v2.0</span></h1>
+        <p class="subtitle">API Proxy - Bypass CORS hoàn toàn</p>
         
         <div class="input-group">
             <div class="input-wrapper">
@@ -236,19 +238,36 @@
                 >
             </div>
             <button class="check-btn" onclick="checkWallet()">
-                Kiểm tra trạng thái
+                🔍 Kiểm tra trạng thái
             </button>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #666;">Đang kiểm tra...</p>
+            <p style="margin-top: 10px; color: #666;">Đang kiểm tra qua API proxy...</p>
         </div>
 
         <div class="result" id="result"></div>
 
         <div class="info">
-            <strong>Lưu ý:</strong> Tool sử dụng proxy server để bypass CORS policy. Nếu một proxy không hoạt động, hãy thử proxy khác trong dropdown.
+            <strong>✅ Cải tiến v2.0:</strong>
+            <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px;">
+                <li>Sử dụng API proxy riêng trên Vercel</li>
+                <li>Bypass CORS hoàn toàn</li>
+                <li>Tốc độ nhanh hơn, ổn định hơn</li>
+                <li>Không phụ thuộc proxy bên ngoài</li>
+            </ul>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalChecks">0</div>
+                <div>Lượt check</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="successRate">100%</div>
+                <div>Thành công</div>
+            </div>
         </div>
     </div>
 
@@ -257,12 +276,15 @@
         const resultDiv = document.getElementById('result');
         const loadingDiv = document.getElementById('loading');
         const checkBtn = document.querySelector('.check-btn');
-        const proxySelect = document.getElementById('proxySelect');
+        
+        let totalChecks = parseInt(localStorage.getItem('totalChecks') || '0');
+        let successChecks = parseInt(localStorage.getItem('successChecks') || '0');
+        
+        updateStats();
 
         // Auto format wallet address
         walletInput.addEventListener('input', function(e) {
             let value = e.target.value;
-            // Remove any non-hex characters except 0x
             if (!value.startsWith('0x') && value.length > 0) {
                 value = '0x' + value.replace(/[^a-fA-F0-9]/g, '');
             }
@@ -278,40 +300,39 @@
 
         async function checkWallet() {
             const walletAddress = walletInput.value.trim();
-            const proxyUrl = proxySelect.value;
             
-            // Validate wallet address
             if (!walletAddress) {
-                showResult('Vui lòng nhập địa chỉ ví!', 'error');
+                showResult('❌ Vui lòng nhập địa chỉ ví!', 'error');
                 return;
             }
 
             if (!isValidWalletAddress(walletAddress)) {
-                showResult('Địa chỉ ví không hợp lệ! Địa chỉ phải có định dạng 0x...', 'error');
+                showResult('❌ Địa chỉ ví không hợp lệ!\nĐịa chỉ phải có định dạng 0x... (42 ký tự)', 'error');
                 return;
             }
 
-            // Show loading
             showLoading(true);
             hideResult();
+            totalChecks++;
+            updateStats();
 
             try {
-                const apiUrl = `https://loyalty.campnetwork.xyz/api/users?walletAddress=${walletAddress}`;
-                const requestUrl = proxyUrl + encodeURIComponent(apiUrl);
-
-                const response = await fetch(requestUrl, {
+                // Sử dụng API proxy của chính mình
+                const response = await fetch(`/api/proxy?walletAddress=${walletAddress}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
+                successChecks++;
+                updateStats();
                 
                 // Process result
                 if (data.data && data.data.length > 0) {
@@ -323,49 +344,62 @@
                         const twitterUser = userMetadata.twitterUser;
                         const displayName = userMetadata.displayName;
                         const blockReason = userMetadata.blockStatusReason;
+                        const followersCount = userMetadata.twitterUserFollowersCount;
                         
                         if (isBlocked) {
-                            let message = `❌ VÍ ĐÃ BỊ BAN!`;
+                            let message = `🚫 VÍ ĐÃ BỊ BAN!`;
                             if (blockReason) {
-                                message += `\nLý do: ${blockReason}`;
+                                message += `\n📝 Lý do: ${blockReason}`;
                             }
                             if (twitterUser) {
-                                message += `\nTwitter: @${twitterUser}`;
+                                message += `\n🐦 Twitter: @${twitterUser}`;
+                                if (followersCount) {
+                                    message += ` (${followersCount} followers)`;
+                                }
                             }
                             showResult(message, 'banned');
                         } else {
                             let message = `✅ VÍ AN TOÀN - CHƯA BỊ BAN!`;
                             if (twitterUser) {
-                                message += `\nTwitter: @${twitterUser}`;
+                                message += `\n🐦 Twitter: @${twitterUser}`;
+                                if (followersCount) {
+                                    message += ` (${followersCount} followers)`;
+                                }
                             }
-                            if (displayName) {
-                                message += `\nTên hiển thị: ${displayName}`;
+                            if (displayName && displayName !== twitterUser) {
+                                message += `\n👤 Tên: ${displayName}`;
                             }
                             showResult(message, 'safe');
                         }
                     } else {
-                        showResult('✅ VÍ AN TOÀN - CHƯA BỊ BAN!\n(Không có metadata)', 'safe');
+                        showResult('✅ VÍ AN TOÀN - CHƯA BỊ BAN!\n📝 Chưa có thông tin metadata', 'safe');
                     }
                 } else {
-                    showResult('⚠️ KHÔNG TÌM THẤY THÔNG TIN VÍ\nVí này có thể chưa tương tác với Camp Network', 'error');
+                    showResult('⚠️ KHÔNG TÌM THẤY THÔNG TIN VÍ\n📝 Ví này có thể chưa tương tác với Camp Network', 'error');
                 }
 
             } catch (error) {
                 console.error('Error:', error);
+                let errorMessage = '❌ LỖI KẾT NỐI!';
+                
                 if (error.message.includes('403')) {
-                    showResult('❌ LỖI 403 - PROXY BỊ BLOCK!\nHãy thử proxy server khác trong dropdown', 'error');
+                    errorMessage += '\n🚫 Bị từ chối truy cập (403)';
                 } else if (error.message.includes('404')) {
-                    showResult('⚠️ KHÔNG TÌM THẤY VÍ\nVí này không tồn tại trên Camp Network', 'error');
+                    errorMessage += '\n🔍 Không tìm thấy endpoint (404)';
+                } else if (error.message.includes('500')) {
+                    errorMessage += '\n🔧 Lỗi server nội bộ (500)';
                 } else {
-                    showResult(`❌ LỖI KẾT NỐI!\n${error.message}\nHãy thử proxy khác hoặc thử lại sau`, 'error');
+                    errorMessage += `\n📝 ${error.message}`;
                 }
+                
+                errorMessage += '\n\n💡 Hãy thử lại sau vài giây';
+                showResult(errorMessage, 'error');
             } finally {
                 showLoading(false);
             }
         }
 
         function isValidWalletAddress(address) {
-            // Check if it's a valid Ethereum address format
             return /^0x[a-fA-F0-9]{40}$/.test(address);
         }
 
@@ -382,15 +416,24 @@
             if (show) {
                 loadingDiv.style.display = 'block';
                 checkBtn.disabled = true;
-                checkBtn.textContent = 'Đang kiểm tra...';
+                checkBtn.textContent = '⏳ Đang kiểm tra...';
             } else {
                 loadingDiv.style.display = 'none';
                 checkBtn.disabled = false;
-                checkBtn.textContent = 'Kiểm tra trạng thái';
+                checkBtn.textContent = '🔍 Kiểm tra trạng thái';
             }
         }
 
-        // Auto focus on input
+        function updateStats() {
+            document.getElementById('totalChecks').textContent = totalChecks;
+            const rate = totalChecks > 0 ? Math.round((successChecks / totalChecks) * 100) : 100;
+            document.getElementById('successRate').textContent = `${rate}%`;
+            
+            localStorage.setItem('totalChecks', totalChecks.toString());
+            localStorage.setItem('successChecks', successChecks.toString());
+        }
+
+        // Auto focus
         window.addEventListener('load', () => {
             walletInput.focus();
         });
