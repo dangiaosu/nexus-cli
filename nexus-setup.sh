@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Nexus Network Auto Setup Script
 # GitHub: https://github.com/YOUR_USERNAME/YOUR_REPO
 
