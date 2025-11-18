@@ -15,7 +15,7 @@ echo -e "${GREEN}================================${NC}\n"
 # Update and install dependencies
 echo -e "${YELLOW}[1/6] Updating system and installing dependencies...${NC}"
 apt update
-apt install build-essential pkg-config libssl-dev git curl -y
+apt install build-essential pkg-config libssl-dev git curl screen -y
 
 # Install Rust
 echo -e "${YELLOW}[2/6] Installing Rust...${NC}"
@@ -121,5 +121,13 @@ if [[ $CONFIRM != "y" && $CONFIRM != "Y" ]]; then
 fi
 
 # Start Nexus Network
-echo -e "\n${YELLOW}[6/6] Starting Nexus Network...${NC}\n"
-/root/nexus-cli/clients/cli/target/release/nexus-network start --node-id $NODE_ID --max-threads $MAX_THREADS --max-difficulty $MAX_DIFFICULTY
+echo -e "\n${YELLOW}[6/6] Starting Nexus Network in screen session...${NC}\n"
+screen -dmS nexus /root/nexus-cli/clients/cli/target/release/nexus-network start --node-id $NODE_ID --max-threads $MAX_THREADS --max-difficulty $MAX_DIFFICULTY
+
+echo -e "${GREEN}================================${NC}"
+echo -e "${GREEN}Nexus Network started successfully!${NC}"
+echo -e "${GREEN}================================${NC}"
+echo -e "To view the session: ${YELLOW}screen -r nexus${NC}"
+echo -e "To detach from screen: ${YELLOW}Press Ctrl+A then D${NC}"
+echo -e "To stop Nexus: ${YELLOW}screen -X -S nexus quit${NC}"
+echo -e "${GREEN}================================${NC}"
